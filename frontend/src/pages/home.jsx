@@ -262,7 +262,6 @@ export function Home() {
   const handleListen = (currentTime) => {
     setCurrentTime(currentTime);
     let skipLength = currentTime * (100 / totalDuration);
-    console.log({ skipLength });
     let newPos = Math.min(Math.max(skipLength, 0), 100);
     setCurrentPos(newPos);
   };
@@ -283,38 +282,36 @@ export function Home() {
         <div className="relative h-[calc(100vh-4rem-17rem)] w-full">
           <div className="text-gradient-top absolute left-0 right-0 top-[-1px] z-10 h-[8rem] w-full bg-[#151515]"></div>
           <div className="text-gradient-bottom absolute bottom-[-2px] left-0 right-0 z-10 h-[8rem] w-full bg-[#151515]"></div>
-          {comments ? (
+          {comments && comments.length > 0 ? (
             <div
               ref={containerRef}
               className="relative mx-auto h-full w-full max-w-[400px] overflow-auto px-4 py-[8rem]"
             >
-              {comments &&
-                comments.length > 0 &&
-                comments.map((item, idx) => {
-                  return (
+              {comments.map((item, idx) => {
+                return (
+                  <div
+                    key={idx}
+                    className="prose"
+                    onClick={() => setCommentIdx(idx)}
+                  >
                     <div
-                      key={idx}
-                      className="prose"
-                      onClick={() => setCommentIdx(idx)}
-                    >
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: item,
-                        }}
-                        className={`text-[32px] font-normal leading-[43px] tracking-[-2px] ${
-                          commentIdx == idx ? "text-[white]" : "text-[#8E4585]"
-                        }`}
-                      />
-                    </div>
-                  );
-                })}
+                      dangerouslySetInnerHTML={{
+                        __html: item,
+                      }}
+                      className={`text-[32px] font-normal leading-[43px] tracking-wide ${
+                        commentIdx == idx ? "text-[white]" : "text-[#8E4585]"
+                      }`}
+                    />
+                  </div>
+                );
+              })}
             </div>
           ) : (
-            <div className="relative mx-auto mt-[8rem] flex h-[50vh] w-full max-w-[400px] flex-col overflow-hidden p-4">
-              <Typography className="text-[32px] font-normal leading-[43px] tracking-[-2px] text-[#8E4585]">
+            <div className="relative mx-auto mt-[8rem] flex h-[50vh] w-full max-w-[400px] flex-col overflow-hidden px-4">
+              <Typography className="text-[32px] font-normal leading-[43px] tracking-wide text-[#8E4585]">
                 Welcome
               </Typography>
-              <Typography className="text-[32px] font-normal leading-[43px] tracking-[-2px] text-[#8E4585]">
+              <Typography className="text-[32px] font-normal leading-[43px] tracking-wide text-[#8E4585]">
                 Share what you need help with and I’ll create a 3 minute guide
                 with advice...
               </Typography>
@@ -349,10 +346,10 @@ export function Home() {
                     trackClassName="[&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:bg-transparent rounded-full !bg-[#FA003F]/10 border border-[#FA003F]/20"
                   />
                   <div className="flex w-full justify-between">
-                    <span className="mt-2 text-white">
+                    <span className="mt-2 !font-sans text-white">
                       {formatTime(currentTime)}
                     </span>
-                    <span className="mt-2 text-white">
+                    <span className="mt-2 !font-sans text-white">
                       {formatTime(totalDuration)}
                     </span>
                   </div>
@@ -427,7 +424,7 @@ export function Home() {
                         src="/img/back.svg"
                         className="h-[30px] w-auto !rounded-none"
                       />
-                      <Typography className="text-lg font-medium normal-case text-white">
+                      <Typography className="!font-sans text-lg font-medium normal-case text-white">
                         Back
                       </Typography>
                     </Button>
@@ -441,7 +438,7 @@ export function Home() {
                       src="/img/speed.svg"
                       className="h-[30px] w-auto !rounded-none"
                     />
-                    <Typography className="text-lg font-medium normal-case text-white">
+                    <Typography className="!font-sans text-lg font-medium normal-case text-white">
                       Speed
                     </Typography>
                   </Button>
@@ -454,7 +451,7 @@ export function Home() {
                       src="/img/share.svg"
                       className="h-[30px] w-auto !rounded-none"
                     />
-                    <Typography className="text-lg font-medium normal-case text-white">
+                    <Typography className="!font-sans text-lg font-medium normal-case text-white">
                       Share
                     </Typography>
                   </Button>
@@ -466,7 +463,7 @@ export function Home() {
                       src="/img/save.svg"
                       className="h-[30px] w-auto !rounded-none"
                     />
-                    <Typography className="text-lg font-medium normal-case text-white">
+                    <Typography className="!font-sans text-lg font-medium normal-case text-white">
                       Save
                     </Typography>
                   </Button>
@@ -523,7 +520,7 @@ export function Home() {
         {showSpeedControlbar && (
           <div className="fixed bottom-0 left-0 right-0 z-50 h-[124px] w-full bg-white px-5 pt-6">
             <div className="flex w-full justify-between">
-              <Typography className="text-2xl font-bold">
+              <Typography className="!font-sans text-2xl font-bold">
                 Playback Speed 2.0
               </Typography>
               <Button
@@ -555,7 +552,7 @@ export function Home() {
                     key={item}
                     onClick={() => handleChangeSpeed(item)}
                     disabled={item == speed}
-                    className={`flex w-[5rem] items-center justify-center border-[1px] border-[#D5D5D5] bg-white p-0 text-lg text-black shadow-none hover:bg-[#D5D5D5] hover:shadow-none ${roundedClass}`}
+                    className={`flex w-[5rem] items-center justify-center border-[1px] border-[#D5D5D5] bg-white p-0 !font-sans text-lg text-black shadow-none hover:bg-[#D5D5D5] hover:shadow-none ${roundedClass}`}
                   >
                     {item}
                   </Button>
@@ -568,7 +565,7 @@ export function Home() {
         {showSharebar && (
           <div className="fixed bottom-0 left-0 right-0 z-50 h-[124px] w-full bg-white px-5 pt-6">
             <div className="flex w-full justify-between">
-              <Typography className="text-2xl font-bold">
+              <Typography className="!font-sans text-2xl font-bold">
                 Share this guide
               </Typography>
               <Button
@@ -583,7 +580,7 @@ export function Home() {
                 onClick={handleCopyContent}
                 className="flex w-full items-center justify-between rounded-lg border-[1px] border-[#D5D5D5] bg-white px-4 py-0 shadow-none hover:bg-[#D5D5D5] hover:shadow-none"
               >
-                <Typography className="text-lg font-bold normal-case text-black">
+                <Typography className="!font-sans text-lg font-bold normal-case text-black">
                   {copyTitle}
                 </Typography>
                 <Avatar
