@@ -310,12 +310,12 @@ export function Home() {
       <div className="relative flex h-full min-h-[100vh] w-full flex-col bg-[#151515]">
         <Header />
         <div className="relative h-[calc(100vh-4rem-17rem)] w-full">
-          <div className="text-gradient-top absolute left-0 right-0 top-[-1px] z-10 h-[8rem] w-full bg-[#151515]"></div>
-          <div className="text-gradient-bottom absolute bottom-[-2px] left-0 right-0 z-10 h-[8rem] w-full bg-[#151515]"></div>
+          <div className="text-gradient-top absolute left-0 right-0 top-[-1px] z-10 h-[6rem] w-full bg-[#151515]"></div>
+          <div className="text-gradient-bottom absolute bottom-[-2px] left-0 right-0 z-10 h-[6rem] w-full bg-[#151515]"></div>
           {comments && comments.length > 0 ? (
             <div
               ref={containerRef}
-              className="relative mx-auto h-full w-full max-w-[400px] overflow-auto px-4 py-[8rem]"
+              className="relative mx-auto h-full w-full max-w-[400px] overflow-auto px-4 py-[6rem]"
             >
               {comments.map((item, idx) => {
                 return (
@@ -329,7 +329,7 @@ export function Home() {
                         __html: item,
                       }}
                       className={`text-[32px] font-normal leading-[43px] tracking-wide ${
-                        commentIdx == idx ? "text-[white]" : "text-[#8E4585]"
+                        commentIdx == idx ? "text-[white]" : "text-[#A85D6E]"
                       }`}
                     />
                   </div>
@@ -337,11 +337,11 @@ export function Home() {
               })}
             </div>
           ) : (
-            <div className="relative mx-auto mt-[8rem] flex h-[50vh] w-full max-w-[400px] flex-col overflow-hidden px-4">
-              <Typography className="text-[32px] font-normal leading-[43px] tracking-wide text-[#8E4585]">
+            <div className="relative mx-auto mt-[6rem] flex h-[50vh] w-full max-w-[400px] flex-col overflow-hidden px-4">
+              <Typography className="text-[32px] font-normal leading-[43px] tracking-wide text-[#A85D6E]">
                 Welcome
               </Typography>
-              <Typography className="text-[32px] font-normal leading-[43px] tracking-wide text-[#8E4585]">
+              <Typography className="text-[32px] font-normal leading-[43px] tracking-wide text-[#A85D6E]">
                 Share what you need help with and I’ll create a 3 minute guide
                 with advice...
               </Typography>
@@ -361,8 +361,8 @@ export function Home() {
           style={{ display: "none" }}
         />
 
-        <div className="fixed bottom-0 left-0 right-0 ">
-          <div className="h-[16rem] px-4 pt-4">
+        <div className="fixed bottom-0 left-0 right-0 z-50 ">
+          <div className="h-[20rem] px-4 pt-2">
             {audiolink != "" ? (
               <div className="flex flex-col justify-between">
                 <div className="flex w-full flex-col justify-between">
@@ -384,7 +384,7 @@ export function Home() {
                     </span>
                   </div>
                 </div>
-                <div className="flex justify-between px-[3rem]">
+                <div className="flex justify-between px-[3rem] pt-8">
                   <Button
                     variant="text"
                     className="p-1"
@@ -416,7 +416,7 @@ export function Home() {
                     />
                   </Button>
                 </div>
-                <div className="flex items-center justify-between gap-1 py-3">
+                <div className="flex items-center justify-between gap-1 pt-10">
                   <Button
                     variant="text"
                     className="flex items-center justify-center p-1"
@@ -444,7 +444,7 @@ export function Home() {
                     />
                   </Button>
                 </div>
-                <div className="flex w-full justify-between px-[2rem]">
+                <div className="flex w-full justify-between px-[2rem] pt-8">
                   <a href="/">
                     <Button
                       variant="text"
@@ -500,8 +500,8 @@ export function Home() {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col">
-                <div className="flex h-[6rem] w-full items-center justify-center">
+              <div className="flex h-full flex-col justify-end">
+                <div className="flex h-[5rem] w-full items-center justify-center">
                   {recordingRef.current &&
                     queue.length == 30 &&
                     queue.map((item, idx) => {

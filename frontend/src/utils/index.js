@@ -1,8 +1,8 @@
 export const getHeightfromVolume = (value) => {
   const minValue = 0;
-  const maxValue = 5;
+  const maxValue = 15;
   const minPixel = 10;
-  const maxPixel = 40;
+  const maxPixel = 50;
 
   // Ensure the value is within bounds
   const boundedValue = Math.min(Math.max(value, minValue), maxValue);
