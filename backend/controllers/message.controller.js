@@ -12,7 +12,8 @@ exports.handleQuestions = async (req, res) => {
   try {
     const { messages } = req.body;
     const file = req.file;
-    let base64Audio = null;
+    let durationList = [];
+    let combinedBase64Audio = null;
     let totalText = "";
     let totalDuration = 0;
     let transcription = await getTranscription(file.buffer);
@@ -24,60 +25,55 @@ exports.handleQuestions = async (req, res) => {
         apiKey: process.env.ELEVENLABS_API_KEY,
       });
 
-      data.response.map(async (item) => {
-        totalText += item + "\n";
+      const audioPromises = data.response.map(async (item) => {
+        const audioStream = await client.generate({
+          voice: "Rachel",
+          model_id: "eleven_turbo_v2_5",
+          text: item,
+        });
+
+        let chunks = [];
+        for await (const chunk of audioStream) {
+          chunks.push(chunk);
+        }
+
+        const audioBuffer = Buffer.concat(chunks);
+        const base64Audio = audioBuffer.toString("base64");
+
+        const mm = await loadMusicMetadata();
+        const metadata = await mm.parseBuffer(audioBuffer, {
+          mimeType: "audio/mpeg",
+        });
+        totalDuration += metadata.format.duration;
+        duration = metadata.format.duration;
+
+        return {
+          duration,
+          base64Audio,
+        };
       });
 
-      const audioStream = await client.generate({
-        voice: "Rachel",
-        model_id: "eleven_turbo_v2_5",
-        text: totalText,
-      });
+      const results = await Promise.all(audioPromises);
 
-      let chunks = [];
-      for await (const chunk of audioStream) {
-        chunks.push(chunk);
+      // Check if results is populated correctly
+      if (results.length > 0) {
+        // Concatenate all audio buffers into a single buffer
+        const combinedAudioBuffer = Buffer.concat(
+          results.map((res) => {
+            if (res.base64Audio) {
+              return Buffer.from(res.base64Audio, "base64");
+            }
+            throw new Error("Base64 audio is undefined");
+          })
+        );
+        combinedBase64Audio = combinedAudioBuffer.toString("base64");
+      } else {
+        throw new Error("No audio data available to combine");
       }
 
-      const audioBuffer = Buffer.concat(chunks);
-      base64Audio = audioBuffer.toString("base64");
-
-      const mm = await loadMusicMetadata();
-      const metadata = await mm.parseBuffer(audioBuffer, {
-        mimeType: "audio/mpeg",
+      results.map((item) => {
+        durationList.push(item.duration);
       });
-      totalDuration = metadata.format.duration;
-
-      // const audioPromises = data.response.map(async (item) => {
-      //   totalText += item + "\n";
-      //   const audioStream = await client.generate({
-      //     voice: "Rachel",
-      //     model_id: "eleven_turbo_v2_5",
-      //     text: item,
-      //   });
-
-      //   let chunks = [];
-      //   for await (const chunk of audioStream) {
-      //     chunks.push(chunk);
-      //   }
-
-      //   // Concatenate all chunks into a single Uint8Array
-      //   const audioBuffer = Buffer.concat(chunks);
-      //   base64Audio = audioBuffer.toString("base64");
-
-      //   const mm = await loadMusicMetadata();
-      //   const metadata = await mm.parseBuffer(audioBuffer, {
-      //     mimeType: "audio/mpeg",
-      //   });
-      //   totalDuration += Math.ceil(metadata.format.duration * 100) / 100;
-
-      //   return {
-      //     duration: Math.ceil(metadata.format.duration * 100) / 100,
-      //     text: item,
-      //     base64Audio,
-      //   };
-      // });
-      // response = await Promise.all(audioPromises);
     }
 
     res.status(200).json({
@@ -86,7 +82,8 @@ exports.handleQuestions = async (req, res) => {
       transcription,
       totalText,
       totalDuration,
-      base64Audio,
+      base64Audio: combinedBase64Audio,
+      durationList,
     });
   } catch (err) {
     console.log(err.message);

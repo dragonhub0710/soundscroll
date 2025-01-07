@@ -14,6 +14,7 @@ export function Home() {
   const [countTime, setCountTime] = useState(120);
   const [comments, setComments] = useState("");
   const [commentIdx, setCommentIdx] = useState(0);
+  const [durationList, setDurationList] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPos, setCurrentPos] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -125,6 +126,15 @@ export function Home() {
       .then(async (res) => {
         setComments(res.data.response);
         setTotalDuration(res.data.totalDuration);
+
+        let newDurationList = [];
+        let time = 0;
+        res.data.durationList.map((item) => {
+          newDurationList.push(time);
+          time += item;
+        });
+        setDurationList(newDurationList);
+
         if (res.data.isReady == "none") {
           messagesRef.current.push({
             role: "user",
@@ -214,7 +224,7 @@ export function Home() {
       if (newTime == 0 || newTime == audioCurrent.duration) {
         setCurrentPos(newTime);
       } else {
-        let skipLength = (100 / totalDuration) * amount;
+        let skipLength = (amount / totalDuration) * 100;
         let newPos = currentPos + skipLength;
         setCurrentPos(newPos);
       }
@@ -261,9 +271,18 @@ export function Home() {
 
   const handleListen = (currentTime) => {
     setCurrentTime(currentTime);
-    let skipLength = currentTime * (100 / totalDuration);
-    let newPos = Math.min(Math.max(skipLength, 0), 100);
+    let newPos = (currentTime / totalDuration) * 100;
     setCurrentPos(newPos);
+    durationList.map((item, idx) => {
+      if (idx == durationList.length - 1 && currentTime >= item) {
+        setCommentIdx(idx);
+        return;
+      }
+      if (currentTime >= item && currentTime < durationList[idx + 1]) {
+        setCommentIdx(idx);
+        return;
+      }
+    });
   };
 
   const handleEnded = async () => {
@@ -272,6 +291,17 @@ export function Home() {
       setIsPlaying(false);
       setCurrentTime(audioCurrent.duration);
       setCurrentPos(100);
+    }
+  };
+
+  const handleSelectComment = (idx) => {
+    setCommentIdx(idx);
+    const audioCurrent = audioPlayerRef.current.audio.current;
+    if (audioCurrent && audiolink) {
+      audioCurrent.currentTime = durationList[idx];
+      setCurrentTime(durationList[idx]);
+      let newPos = (durationList[idx] / totalDuration) * 100;
+      setCurrentPos(newPos);
     }
   };
 
@@ -292,7 +322,7 @@ export function Home() {
                   <div
                     key={idx}
                     className="prose"
-                    onClick={() => setCommentIdx(idx)}
+                    onClick={() => handleSelectComment(idx)}
                   >
                     <div
                       dangerouslySetInnerHTML={{
