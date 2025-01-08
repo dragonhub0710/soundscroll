@@ -10,6 +10,8 @@ import Header from "@/widgets/header/header";
 import { getHeightfromVolume, getVolume, updateQueue } from "@/utils";
 
 export function Home() {
+  const speedList = [0.5, 0.8, 1, 1.5];
+  const guideTimeList = [3, 5, 10];
   const [isloading, setIsloading] = useState(false);
   const [countTime, setCountTime] = useState(120);
   const [comments, setComments] = useState("");
@@ -20,7 +22,7 @@ export function Home() {
   const [currentTime, setCurrentTime] = useState(0);
   const [totalDuration, setTotalDuration] = useState(0);
   const [volume, setVolume] = useState(100);
-  const [speed, setSpeed] = useState(1);
+  const [speed, setSpeed] = useState(speedList[1]);
   const [copyTitle, setCopyTitle] = useState("Copy");
   const [showSpeedControlbar, setShowSpeedControlbar] = useState(false);
   const [showSharebar, setSharebar] = useState(false);
@@ -32,8 +34,6 @@ export function Home() {
   const messagesRef = useRef([]);
   const containerRef = useRef(null);
   const audioPlayerRef = useRef(0);
-  const speedList = [0.5, 1, 1.5, 2];
-  const guideTimeList = [3, 5, 10];
 
   const defaultOption = {
     loop: true,
@@ -43,6 +43,14 @@ export function Home() {
       preserveAspectRatio: "xMidYMid slice",
     },
   };
+
+  useEffect(() => {
+    if (audioPlayerRef.current && isPlaying) {
+      audioPlayerRef.current.audio.current.play(); // Play audio if isPlaying is true
+    } else if (audioPlayerRef.current) {
+      audioPlayerRef.current.audio.current.pause(); // Pause audio if isPlaying is false
+    }
+  }, [audiolink, isPlaying]);
 
   useEffect(() => {
     if (countTime == 1) {
@@ -368,7 +376,7 @@ export function Home() {
                         dangerouslySetInnerHTML={{
                           __html: item,
                         }}
-                        className={`text-[32px] font-normal leading-[43px] tracking-wide ${
+                        className={`cursor-pointer text-[32px] font-normal leading-[43px] tracking-wide ${
                           idx == commentIdx ? "text-[white]" : "text-[#A85D6E]"
                         }`}
                       />
@@ -412,6 +420,7 @@ export function Home() {
         </div>
 
         <H5AudioPlayer
+          autoPlay={isPlaying}
           ref={audioPlayerRef}
           src={audiolink}
           listenInterval={1000}
@@ -525,10 +534,9 @@ export function Home() {
                     onClick={handleSpeedControlbar}
                     className="flex flex-col items-center justify-center p-1"
                   >
-                    <Avatar
-                      src="/img/speed.svg"
-                      className="h-[30px] w-auto !rounded-none"
-                    />
+                    <Typography className="h-[30px] !font-sans text-3xl font-medium normal-case text-white">
+                      {speed.toFixed(1)}x
+                    </Typography>
                     <Typography className="!font-sans text-lg font-medium normal-case text-white">
                       Speed
                     </Typography>
@@ -647,17 +655,17 @@ export function Home() {
               </Button>
             </div>
             <div className="mt-4 flex h-10 w-full justify-center">
-              {speedList.map((item) => {
+              {speedList.map((item, idx) => {
                 let roundedClass = "";
-                switch (item) {
-                  case 0.5:
+                switch (idx) {
+                  case 0:
                     roundedClass = "rounded-r-none";
                     break;
                   case 1:
-                  case 1.5:
+                  case 2:
                     roundedClass = "rounded-none";
                     break;
-                  case 2:
+                  case 3:
                     roundedClass = "rounded-l-none";
                     break;
                   default:
