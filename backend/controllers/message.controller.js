@@ -77,8 +77,9 @@ exports.handleGuide = async (req, res) => {
         const metadata = await mm.parseBuffer(audioBuffer, {
           mimeType: "audio/mpeg",
         });
-        totalDuration += metadata.format.duration;
-        duration = metadata.format.duration;
+        totalDuration +=
+          Math.ceil(metadata.format.duration * 1000000) / 1000000;
+        duration = Math.ceil(metadata.format.duration * 1000000) / 1000000;
 
         return {
           duration,
