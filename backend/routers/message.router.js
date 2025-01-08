@@ -7,6 +7,11 @@ const messageController = require("../controllers/message.controller");
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Define article routes
-router.post("/", upload.single("file"), messageController.handleQuestions);
+router.post(
+  "/question",
+  upload.single("file"),
+  messageController.handleQuestions
+);
+router.post("/guide", messageController.handleGuide);
 
 module.exports = router;

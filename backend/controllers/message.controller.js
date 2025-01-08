@@ -12,13 +12,46 @@ exports.handleQuestions = async (req, res) => {
   try {
     const { messages } = req.body;
     const file = req.file;
+    let transcription = await getTranscription(file.buffer);
+    let data = await getResponse(JSON.parse(messages), transcription);
+
+    res.status(200).json({
+      isReady: data.isReady,
+      response: data.response,
+      transcription,
+    });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.handleGuide = async (req, res) => {
+  try {
+    const { messages, time } = req.body;
+
     let durationList = [];
     let combinedBase64Audio = null;
-    let totalText = "";
     let totalDuration = 0;
-    let transcription = await getTranscription(file.buffer);
 
-    let data = await getResponse(JSON.parse(messages), transcription);
+    let extraPrompt = "Please provide a guide involving ";
+    switch (time) {
+      case 3:
+        extraPrompt += "500 words.";
+        break;
+      case 5:
+        extraPrompt += "750 words.";
+        break;
+      case 10:
+        extraPrompt += "1500 words.";
+        break;
+    }
+    messages.push({
+      role: "user",
+      content: extraPrompt,
+    });
+
+    let data = await getResponse(messages, "");
 
     if (data.isReady == "done") {
       const client = new ElevenLabsClient({
@@ -79,8 +112,6 @@ exports.handleQuestions = async (req, res) => {
     res.status(200).json({
       isReady: data.isReady,
       response: data.response,
-      transcription,
-      totalText,
       totalDuration,
       base64Audio: combinedBase64Audio,
       durationList,

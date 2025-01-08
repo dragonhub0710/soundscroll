@@ -1,5 +1,7 @@
 body {
   font-family: "playfair-display", sans-serif !important;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 @font-face {
@@ -16,22 +18,7 @@ body {
 
 /* width */
 ::-webkit-scrollbar {
-  width: 10px;
-  cursor: default;
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 5px #eef3f1;
-  border-radius: 10px;
-  cursor: default;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-  box-shadow: inset 0 0 5px grey;
-  border-radius: 10px;
-  cursor: default;
+  display: none;
 }
 
 @keyframes moveUpFade {

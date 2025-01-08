@@ -26,6 +26,8 @@ export function Home() {
   const [showSharebar, setSharebar] = useState(false);
   const [audiolink, setAudioLink] = useState("");
   const [queue, setQueue] = useState(new Array(30).fill(10));
+  const [showGuideTimes, setShowGuideTimes] = useState(false);
+  const [guideTime, setGuideTime] = useState(0);
   const recordingRef = useRef(false);
   const messagesRef = useRef([]);
   const containerRef = useRef(null);
@@ -122,18 +124,9 @@ export function Home() {
     formData.append("messages", JSON.stringify(messagesRef.current));
     setIsloading(true);
     axios
-      .post(`${import.meta.env.VITE_BACKEND_URL}/api`, formData)
+      .post(`${import.meta.env.VITE_BACKEND_URL}/api/question`, formData)
       .then(async (res) => {
         setComments(res.data.response);
-        setTotalDuration(res.data.totalDuration);
-
-        let newDurationList = [];
-        let time = 0;
-        res.data.durationList.map((item) => {
-          newDurationList.push(time);
-          time += item;
-        });
-        setDurationList(newDurationList);
 
         if (res.data.isReady == "none") {
           messagesRef.current.push({
@@ -149,19 +142,8 @@ export function Home() {
             content: text,
           });
         }
-        if (res.data.isReady == "done") {
-          const audioBlob = new Blob(
-            [
-              new Uint8Array(
-                atob(res.data.base64Audio)
-                  .split("")
-                  .map((c) => c.charCodeAt(0))
-              ),
-            ],
-            { type: "audio/mp3" }
-          );
-          const audioUrl = URL.createObjectURL(audioBlob);
-          setAudioLink(audioUrl);
+        if (res.data.isReady == "ready") {
+          setShowGuideTimes(true);
         }
       })
       .catch((err) => {
@@ -305,36 +287,112 @@ export function Home() {
     }
   };
 
+  const handleSetGuideTime = (time) => {
+    setGuideTime(time);
+  };
+
+  const handleGuideAudio = () => {
+    const data = {
+      messages: messagesRef.current,
+      time: guideTime,
+    };
+
+    setIsloading(true);
+    axios
+      .post(`${import.meta.env.VITE_BACKEND_URL}/api/guide`, data)
+      .then(async (res) => {
+        if (res.data.base64Audio) {
+          setComments(res.data.response);
+          setTotalDuration(res.data.totalDuration);
+
+          let newDurationList = [];
+          let time = 0;
+          res.data.durationList.map((item) => {
+            newDurationList.push(time);
+            time += item;
+          });
+          setDurationList(newDurationList);
+
+          const audioBlob = new Blob(
+            [
+              new Uint8Array(
+                atob(res.data.base64Audio)
+                  .split("")
+                  .map((c) => c.charCodeAt(0))
+              ),
+            ],
+            { type: "audio/mp3" }
+          );
+          const audioUrl = URL.createObjectURL(audioBlob);
+          setAudioLink(audioUrl);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setIsloading(false);
+      });
+  };
+
   return (
     <>
       <div className="relative flex h-full min-h-[100vh] w-full flex-col bg-[#151515]">
         <Header />
         <div className="relative h-[calc(100vh-4rem-17rem)] w-full">
-          <div className="text-gradient-top absolute left-0 right-0 top-[-1px] z-10 h-[6rem] w-full bg-[#151515]"></div>
-          <div className="text-gradient-bottom absolute bottom-[-2px] left-0 right-0 z-10 h-[6rem] w-full bg-[#151515]"></div>
           {comments && comments.length > 0 ? (
-            <div
-              ref={containerRef}
-              className="relative mx-auto h-full w-full max-w-[400px] overflow-auto px-4 py-[6rem]"
-            >
-              {comments.map((item, idx) => {
-                return (
-                  <div
-                    key={idx}
-                    className="prose"
-                    onClick={() => handleSelectComment(idx)}
-                  >
+            <div className="h-full w-full">
+              <div className="text-gradient-top absolute left-0 right-0 top-[-1px] z-10 h-[6rem] w-full bg-[#151515]"></div>
+              <div className="text-gradient-bottom absolute bottom-[-2px] left-0 right-0 z-10 h-[6rem] w-full bg-[#151515]"></div>
+              <div
+                ref={containerRef}
+                className="relative mx-auto h-full w-full max-w-[400px] overflow-auto px-4 py-[6rem]"
+              >
+                {comments.map((item, idx) => {
+                  return (
                     <div
-                      dangerouslySetInnerHTML={{
-                        __html: item,
-                      }}
-                      className={`text-[32px] font-normal leading-[43px] tracking-wide ${
-                        commentIdx == idx ? "text-[white]" : "text-[#A85D6E]"
-                      }`}
-                    />
-                  </div>
-                );
-              })}
+                      key={idx}
+                      className="prose"
+                      onClick={() => handleSelectComment(idx)}
+                    >
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: item,
+                        }}
+                        className={`text-[32px] font-normal leading-[43px] tracking-wide ${
+                          idx == commentIdx ? "text-[white]" : "text-[#A85D6E]"
+                        }`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : showGuideTimes ? (
+            <div className="relative mx-auto mt-[6rem] flex h-[50vh] w-full max-w-[400px] flex-col overflow-hidden px-4">
+              <Typography className="text-[32px] font-normal leading-[43px] tracking-wide text-[white]">
+                Choose the length of your guide for this topic
+              </Typography>
+              <div className="my-10 flex flex-col gap-3">
+                <div
+                  onClick={() => handleSetGuideTime(3)}
+                  className="flex h-10 w-full items-center justify-center rounded-lg border-[1px] border-[white] !font-sans text-lg font-medium text-[white] hover:bg-[#A85D6E]"
+                >
+                  3 minutes
+                </div>
+                <div
+                  onClick={() => handleSetGuideTime(10)}
+                  className="flex h-10 w-full items-center justify-center rounded-lg border-[1px] border-[white] !font-sans text-lg font-medium text-[white] hover:bg-[#A85D6E]"
+                >
+                  10 minutes
+                </div>
+                <div
+                  onClick={() => handleSetGuideTime(30)}
+                  className="flex h-10 w-full items-center justify-center rounded-lg border-[1px] border-[white] !font-sans text-lg font-medium text-[white] hover:bg-[#A85D6E]"
+                >
+                  30 minutes
+                </div>
+              </div>
             </div>
           ) : (
             <div className="relative mx-auto mt-[6rem] flex h-[50vh] w-full max-w-[400px] flex-col overflow-hidden px-4">
@@ -342,8 +400,8 @@ export function Home() {
                 Welcome
               </Typography>
               <Typography className="text-[32px] font-normal leading-[43px] tracking-wide text-[#A85D6E]">
-                Share what you need help with and I’ll create a 3 minute guide
-                with advice...
+                Share what you need help with and I’ll create a guide with
+                advice...
               </Typography>
             </div>
           )}
@@ -516,31 +574,54 @@ export function Home() {
                     })}
                 </div>
                 <div className="flex h-[10rem] w-full flex-col items-center justify-center">
-                  <Button
-                    onClick={handleStartRecording}
-                    className={`flex h-[84px] w-[84px] items-center justify-center rounded-full shadow-none hover:shadow-none ${
-                      isloading ? "bg-[#A85D6E]" : "bg-[#FA003F]"
-                    }`}
-                  >
-                    {recordingRef.current ? (
-                      <CountdownTimer
-                        status={recordingRef.current}
-                        setCountTime={setCountTime}
-                      />
-                    ) : isloading ? (
-                      <div className="flex h-12 w-12 items-center justify-center">
-                        <Lottie
-                          options={defaultOption}
-                          isClickToPauseDisabled={true}
+                  {showGuideTimes ? (
+                    <Button
+                      onClick={handleGuideAudio}
+                      className={`flex h-[84px] w-[84px] items-center justify-center rounded-full shadow-none hover:shadow-none ${
+                        isloading ? "bg-[#A85D6E]" : "bg-[#FA003F]"
+                      }`}
+                    >
+                      {isloading ? (
+                        <div className="flex h-16 w-16 items-center justify-center">
+                          <Lottie
+                            options={defaultOption}
+                            isClickToPauseDisabled={true}
+                          />
+                        </div>
+                      ) : (
+                        <Avatar
+                          src="/img/check.svg"
+                          className="h-auto w-[42px] rounded-none"
                         />
-                      </div>
-                    ) : (
-                      <Avatar
-                        src="img/mic.svg"
-                        className="h-auto w-[36px] rounded-none"
-                      />
-                    )}
-                  </Button>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleStartRecording}
+                      className={`flex h-[84px] w-[84px] items-center justify-center rounded-full shadow-none hover:shadow-none ${
+                        isloading ? "bg-[#A85D6E]" : "bg-[#FA003F]"
+                      }`}
+                    >
+                      {recordingRef.current ? (
+                        <CountdownTimer
+                          status={recordingRef.current}
+                          setCountTime={setCountTime}
+                        />
+                      ) : isloading ? (
+                        <div className="flex h-16 w-16 items-center justify-center">
+                          <Lottie
+                            options={defaultOption}
+                            isClickToPauseDisabled={true}
+                          />
+                        </div>
+                      ) : (
+                        <Avatar
+                          src="/img/mic.svg"
+                          className="h-auto w-[36px] rounded-none"
+                        />
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
