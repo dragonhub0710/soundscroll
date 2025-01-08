@@ -33,6 +33,7 @@ export function Home() {
   const containerRef = useRef(null);
   const audioPlayerRef = useRef(0);
   const speedList = [0.5, 1, 1.5, 2];
+  const guideTimeList = [3, 5, 10];
 
   const defaultOption = {
     loop: true,
@@ -48,6 +49,13 @@ export function Home() {
       recordingRef.current = false;
     }
   }, [countTime]);
+
+  useEffect(() => {
+    const commentElement = document.getElementById(`comment-${commentIdx}`);
+    if (commentElement) {
+      commentElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [commentIdx]);
 
   const handleStartRecording = async () => {
     if (recordingRef.current) {
@@ -351,6 +359,7 @@ export function Home() {
                 {comments.map((item, idx) => {
                   return (
                     <div
+                      id={`comment-${idx}`}
                       key={idx}
                       className="prose"
                       onClick={() => handleSelectComment(idx)}
@@ -374,24 +383,19 @@ export function Home() {
                 Choose the length of your guide for this topic
               </Typography>
               <div className="my-10 flex flex-col gap-3">
-                <div
-                  onClick={() => handleSetGuideTime(3)}
-                  className="flex h-10 w-full items-center justify-center rounded-lg border-[1px] border-[white] !font-sans text-lg font-medium text-[white] hover:bg-[#A85D6E]"
-                >
-                  3 minutes
-                </div>
-                <div
-                  onClick={() => handleSetGuideTime(10)}
-                  className="flex h-10 w-full items-center justify-center rounded-lg border-[1px] border-[white] !font-sans text-lg font-medium text-[white] hover:bg-[#A85D6E]"
-                >
-                  10 minutes
-                </div>
-                <div
-                  onClick={() => handleSetGuideTime(30)}
-                  className="flex h-10 w-full items-center justify-center rounded-lg border-[1px] border-[white] !font-sans text-lg font-medium text-[white] hover:bg-[#A85D6E]"
-                >
-                  30 minutes
-                </div>
+                {guideTimeList.map((item, idx) => {
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => handleSetGuideTime(item)}
+                      className={`flex h-10 w-full cursor-pointer items-center justify-center rounded-lg border-[1px] border-[white] !font-sans text-lg font-medium text-[white] hover:bg-[#A85D6E] ${
+                        item == guideTime ? "bg-[#A85D6E]" : "bg-transparent"
+                      }`}
+                    >
+                      {item} minutes
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : (
@@ -408,7 +412,6 @@ export function Home() {
         </div>
 
         <H5AudioPlayer
-          autoPlay={false}
           ref={audioPlayerRef}
           src={audiolink}
           listenInterval={1000}
@@ -578,7 +581,9 @@ export function Home() {
                     <Button
                       onClick={handleGuideAudio}
                       className={`flex h-[84px] w-[84px] items-center justify-center rounded-full shadow-none hover:shadow-none ${
-                        isloading ? "bg-[#A85D6E]" : "bg-[#FA003F]"
+                        isloading || guideTime == 0
+                          ? "bg-[#A85D6E]"
+                          : "bg-[#FA003F]"
                       }`}
                     >
                       {isloading ? (

@@ -142,7 +142,7 @@ const getResponse = async (msgs, transcription) => {
     }
     const completion = await openai.chat.completions.create({
       messages: list,
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       response_format: { type: "json_object" },
     });
     return JSON.parse(completion.choices[0].message.content);
